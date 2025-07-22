@@ -1,17 +1,136 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 
+import '../../../core/exceptions/api_exceptions.dart';
 import '../../../data/models/journal_entry.dart';
 import '../../../data/models/mood.dart';
+import '../../../data/services/journal_service.dart';
 
 class JournalsController extends GetxController {
   final RxList<JournalEntry> journalEntries = <JournalEntry>[].obs;
   final RxString searchQuery = ''.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSearching = false.obs;
+
+  final JournalService _journalService = Get.find<JournalService>();
 
   @override
   void onInit() {
     super.onInit();
-    // Initialize with sample data based on Figma designs
-    _loadSampleJournalEntries();
+    loadJournals();
+  }
+
+  Future<void> loadJournals({int limit = 50}) async {
+    try {
+      isLoading.value = true;
+
+      final apiJournals = await _journalService.getJournals(limit: limit);
+
+      // Convert API journal models to local journal entry models
+      final entries = apiJournals
+          .map((apiJournal) => JournalEntry(
+                id: apiJournal.id.toString(),
+                title: apiJournal.title,
+                content: apiJournal.content,
+                mood: _mapStringToMood(apiJournal.mood),
+                createdAt: apiJournal.createdAt,
+                updatedAt: apiJournal.updatedAt,
+                tags: [], // Add if needed
+                attachments: [], // Add if needed
+              ))
+          .toList();
+
+      journalEntries.assignAll(entries);
+    } on NetworkException {
+      Get.snackbar(
+        'Network Error',
+        'Please check your internet connection',
+        snackPosition: SnackPosition.TOP,
+      );
+      // Fallback to sample data for demo
+      _loadSampleJournalEntries();
+    } on ApiException catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to load journals: ${e.message}',
+        snackPosition: SnackPosition.TOP,
+      );
+      _loadSampleJournalEntries();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.TOP,
+      );
+      _loadSampleJournalEntries();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> searchJournals(String query) async {
+    if (query.isEmpty) {
+      loadJournals();
+      return;
+    }
+
+    try {
+      isSearching.value = true;
+
+      final apiJournals = await _journalService.searchJournals(query: query);
+
+      final entries = apiJournals
+          .map((apiJournal) => JournalEntry(
+                id: apiJournal.id.toString(),
+                title: apiJournal.title,
+                content: apiJournal.content,
+                mood: _mapStringToMood(apiJournal.mood),
+                createdAt: apiJournal.createdAt,
+                updatedAt: apiJournal.updatedAt,
+                tags: [],
+                attachments: [],
+              ))
+          .toList();
+
+      journalEntries.assignAll(entries);
+    } on NetworkException {
+      Get.snackbar(
+        'Network Error',
+        'Please check your internet connection',
+        snackPosition: SnackPosition.TOP,
+      );
+    } on ApiException catch (e) {
+      Get.snackbar(
+        'Search Error',
+        'Failed to search journals: ${e.message}',
+        snackPosition: SnackPosition.TOP,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred during search',
+        snackPosition: SnackPosition.TOP,
+      );
+    } finally {
+      isSearching.value = false;
+    }
+  }
+
+  Mood _mapStringToMood(String moodString) {
+    switch (moodString.toLowerCase()) {
+      case 'happy':
+        return Mood.happy;
+      case 'sad':
+        return Mood.sad;
+      case 'angry':
+        return Mood.angry;
+      case 'anxious':
+        return Mood.anxious;
+      case 'neutral':
+      default:
+        return Mood.neutral;
+    }
   }
 
   void _loadSampleJournalEntries() {
@@ -41,23 +160,6 @@ class JournalsController extends GetxController {
         mood: Mood.anxious,
         createdAt: now.subtract(const Duration(days: 1, hours: 13)),
         updatedAt: now.subtract(const Duration(days: 1, hours: 13)),
-      ),
-      JournalEntry(
-        id: '4',
-        title: 'Setting intentions for the week',
-        content: 'This week I want to focus on mindfulness, connection, and personal growth...',
-        mood: Mood.neutral,
-        createdAt: now.subtract(const Duration(days: 7)),
-        updatedAt: now.subtract(const Duration(days: 7)),
-      ),
-      JournalEntry(
-        id: '5',
-        title: 'Dealing with setbacks',
-        content:
-            'Sometimes life throws curveballs, but each challenge is an opportunity to grow stronger...',
-        mood: Mood.sad,
-        createdAt: now.subtract(const Duration(days: 7, hours: 2)),
-        updatedAt: now.subtract(const Duration(days: 7, hours: 2)),
       ),
     ];
 
@@ -104,7 +206,15 @@ class JournalsController extends GetxController {
 
   void updateSearchQuery(String query) {
     searchQuery.value = query;
+
+    // Debounce search to avoid too many API calls
+    _debounceSearchTimer?.cancel();
+    _debounceSearchTimer = Timer(const Duration(milliseconds: 500), () {
+      searchJournals(query);
+    });
   }
+
+  Timer? _debounceSearchTimer;
 
   void addJournalEntry(JournalEntry entry) {
     journalEntries.insert(0, entry);
@@ -117,7 +227,44 @@ class JournalsController extends GetxController {
     }
   }
 
-  void deleteJournalEntry(String entryId) {
-    journalEntries.removeWhere((entry) => entry.id == entryId);
+  Future<void> deleteJournalEntry(String entryId) async {
+    try {
+      await _journalService.deleteJournal(int.parse(entryId));
+      journalEntries.removeWhere((entry) => entry.id == entryId);
+
+      Get.snackbar(
+        'Success',
+        'Journal entry deleted',
+        snackPosition: SnackPosition.TOP,
+      );
+    } on NetworkException {
+      Get.snackbar(
+        'Network Error',
+        'Please check your internet connection',
+        snackPosition: SnackPosition.TOP,
+      );
+    } on ApiException catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete journal: ${e.message}',
+        snackPosition: SnackPosition.TOP,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.TOP,
+      );
+    }
+  }
+
+  Future<void> refreshJournals() async {
+    await loadJournals();
+  }
+
+  @override
+  void onClose() {
+    _debounceSearchTimer?.cancel();
+    super.onClose();
   }
 }

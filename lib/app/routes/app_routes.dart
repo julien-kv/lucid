@@ -6,6 +6,7 @@ abstract class Routes {
   static const LAUNCH = _Paths.LAUNCH;
   static const ONBOARDING = _Paths.ONBOARDING;
   static const SIGNIN = _Paths.SIGNIN;
+  static const SIGNUP = _Paths.SIGNUP;
   static const HOME = _Paths.HOME;
   static const MAIN = _Paths.MAIN;
   static const JOURNALS = _Paths.JOURNALS;
@@ -23,6 +24,7 @@ abstract class _Paths {
   static const LAUNCH = '/launch';
   static const ONBOARDING = '/onboarding';
   static const SIGNIN = '/signin';
+  static const SIGNUP = '/signup';
   static const HOME = '/home';
   static const MAIN = '/main';
   static const JOURNALS = '/journals';

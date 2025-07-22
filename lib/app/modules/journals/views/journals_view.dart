@@ -81,34 +81,84 @@ class JournalsView extends GetView<JournalsController> {
           // Journal Entries
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value && controller.journalEntries.isEmpty) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
               final groupedEntries = controller.groupedEntries;
 
-              return ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  ...groupedEntries.entries.map((group) {
-                    if (group.value.isEmpty) return const SizedBox.shrink();
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Section Header
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            group.key,
-                            style: AppTextStyles.h4,
+              return RefreshIndicator(
+                onRefresh: controller.refreshJournals,
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    if (controller.isSearching.value)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    if (groupedEntries.values.every((list) => list.isEmpty))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.book_outlined,
+                                size: 64,
+                                color: AppColors.textMuted,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                controller.searchQuery.value.isEmpty
+                                    ? 'No journal entries yet'
+                                    : 'No entries found',
+                                style: AppTextStyles.h4.copyWith(
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                controller.searchQuery.value.isEmpty
+                                    ? 'Start your journaling journey!'
+                                    : 'Try adjusting your search terms',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                      )
+                    else
+                      ...groupedEntries.entries.map((group) {
+                        if (group.value.isEmpty) return const SizedBox.shrink();
 
-                        // Entries in this section
-                        ...group.value.map((entry) => _buildJournalEntryCard(entry)),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Section Header
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                group.key,
+                                style: AppTextStyles.h4,
+                              ),
+                            ),
 
-                        const SizedBox(height: 16),
-                      ],
-                    );
-                  }),
-                ],
+                            // Entries in this section
+                            ...group.value.map((entry) => _buildJournalEntryCard(entry)),
+
+                            const SizedBox(height: 16),
+                          ],
+                        );
+                      }),
+                  ],
+                ),
               );
             }),
           ),

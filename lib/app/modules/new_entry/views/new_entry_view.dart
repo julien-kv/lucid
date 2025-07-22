@@ -250,7 +250,7 @@ class NewEntryView extends GetView<NewEntryController> {
             height: 32,
             decoration: BoxDecoration(
               color: controller.selectedMood.value == mood
-                  ? AppColors.primary.withOpacity(0.1)
+                  ? AppColors.primary.withValues(alpha: 0.1)
                   : AppColors.cardBackground,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(

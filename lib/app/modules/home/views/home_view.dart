@@ -55,7 +55,7 @@ class HomeView extends GetView<HomeController> {
                     Container(
                       padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
                       child: Text(
-                        'Good evening, Alex',
+                        'Good evening',
                         style: AppTextStyles.h1.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 24,

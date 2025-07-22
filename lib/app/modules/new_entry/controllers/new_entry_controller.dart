@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../data/models/journal_entry.dart';
+import '../../../core/exceptions/api_exceptions.dart';
 import '../../../data/models/mood.dart';
+import '../../../data/services/journal_service.dart';
+import '../../journals/controllers/journals_controller.dart';
 
 class NewEntryController extends GetxController {
   final titleController = TextEditingController();
@@ -13,6 +15,22 @@ class NewEntryController extends GetxController {
   final RxBool isSaving = false.obs;
 
   final ImagePicker _imagePicker = ImagePicker();
+  final JournalService _journalService = Get.find<JournalService>();
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // Check if a prompt was passed from the prompts page
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map<String, dynamic>) {
+      final prompt = arguments['prompt'];
+      if (prompt != null) {
+        // Pre-fill content with the prompt
+        contentController.text = '${prompt.title}\n\n';
+      }
+    }
+  }
 
   @override
   void onClose() {
@@ -82,41 +100,83 @@ class NewEntryController extends GetxController {
     isSaving.value = true;
 
     try {
-      final now = DateTime.now();
-      final newEntry = JournalEntry(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      // Convert mood enum to string
+      final moodString = _mapMoodToString(selectedMood.value);
+
+      // Create journal via API
+      await _journalService.createJournal(
         title: titleController.text.trim(),
         content: contentController.text.trim(),
-        mood: selectedMood.value,
-        createdAt: now,
-        updatedAt: now,
-        attachments: List.from(attachments),
+        mood: moodString,
+        images: attachments.isNotEmpty ? attachments : null,
       );
 
-      // Here you would typically save to a database or API
-      // For now, we'll just simulate a delay and show success
-      await Future.delayed(const Duration(seconds: 1));
-
-      Get.snackbar(
-        'Success',
-        'Journal entry saved successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      // Refresh journals list if controller exists
+      try {
+        final journalsController = Get.find<JournalsController>();
+        journalsController.refreshJournals();
+      } catch (e) {
+        // Journals controller not found, that's okay
+      }
 
       // Navigate back to journals
       Get.back();
+      Get.snackbar(
+        'Success',
+        'Journal entry saved successfully!',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green.withValues(alpha: 0.1),
+        colorText: Colors.green,
+      );
+    } on ValidationException catch (e) {
+      Get.snackbar(
+        'Validation Error',
+        e.message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.orange.withValues(alpha: 0.1),
+        colorText: Colors.orange,
+      );
+    } on NetworkException {
+      Get.snackbar(
+        'Network Error',
+        'Please check your internet connection',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.blue.withValues(alpha: 0.1),
+        colorText: Colors.blue,
+      );
+    } on ApiException catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to save journal: ${e.message}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.withValues(alpha: 0.1),
+        colorText: Colors.red,
+      );
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to save journal entry: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.withValues(alpha: 0.1),
+        colorText: Colors.red,
       );
     } finally {
       isSaving.value = false;
+    }
+  }
+
+  String _mapMoodToString(Mood mood) {
+    switch (mood) {
+      case Mood.happy:
+        return 'happy';
+      case Mood.sad:
+        return 'sad';
+      case Mood.angry:
+        return 'angry';
+      case Mood.anxious:
+        return 'anxious';
+      case Mood.neutral:
+        return 'neutral';
     }
   }
 

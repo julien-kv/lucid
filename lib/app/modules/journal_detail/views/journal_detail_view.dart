@@ -58,6 +58,7 @@ class JournalDetailView extends GetView<JournalDetailController> {
         }
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: SingleChildScrollView(

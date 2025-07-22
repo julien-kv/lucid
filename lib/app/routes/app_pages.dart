@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:lucid/app/modules/signup/bindings/signup_binding.dart';
+import 'package:lucid/app/modules/signup/views/signup_view.dart';
 
 import '../modules/challenges/bindings/challenges_binding.dart';
 import '../modules/home/bindings/home_binding.dart';
@@ -46,6 +48,11 @@ class AppPages {
       name: _Paths.SIGNIN,
       page: () => const SigninView(),
       binding: SigninBinding(),
+    ),
+    GetPage(
+      name: _Paths.SIGNUP,
+      page: () => const SignupView(),
+      binding: SignupBinding(),
     ),
     GetPage(
       name: _Paths.HOME,
