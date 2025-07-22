@@ -17,6 +17,8 @@ import '../modules/new_entry/views/new_entry_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/prompts/bindings/prompts_binding.dart';
+import '../modules/prompts/views/prompts_view.dart';
 import '../modules/signin/bindings/signin_binding.dart';
 import '../modules/signin/views/signin_view.dart';
 import '../modules/weekly_summary/bindings/weekly_summary_binding.dart';
@@ -80,6 +82,11 @@ class AppPages {
       name: _Paths.MICROJOURNAL,
       page: () => const MicrojournalView(),
       binding: MicrojournalBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROMPTS,
+      page: () => const PromptsView(),
+      binding: PromptsBinding(),
     ),
   ];
 }

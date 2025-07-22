@@ -15,6 +15,7 @@ abstract class Routes {
   static const JOURNAL_DETAIL = _Paths.JOURNAL_DETAIL;
   static const WEEKLY_SUMMARY = _Paths.WEEKLY_SUMMARY;
   static const MICROJOURNAL = _Paths.MICROJOURNAL;
+  static const PROMPTS = _Paths.PROMPTS;
 }
 
 abstract class _Paths {
@@ -31,4 +32,5 @@ abstract class _Paths {
   static const JOURNAL_DETAIL = '/journal-detail';
   static const WEEKLY_SUMMARY = '/weekly-summary';
   static const MICROJOURNAL = '/microjournal';
+  static const PROMPTS = '/prompts';
 }

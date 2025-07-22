@@ -111,39 +111,41 @@ class ChallengesView extends GetView<ChallengesController> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image placeholder
-          Container(
-            height: 240,
-            decoration: BoxDecoration(
-              color: AppColors.lightGrey,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image placeholder
+            Container(
+              height: 250,
+              decoration: BoxDecoration(
+                color: AppColors.lightGrey,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+              ),
+              child: const Center(
+                child: Icon(Icons.image, size: 40, color: AppColors.textMuted),
+              ),
             ),
-            child: const Center(
-              child: Icon(Icons.image, size: 40, color: AppColors.textMuted),
-            ),
-          ),
 
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  challenge.title,
-                  style: AppTextStyles.labelLarge,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  challenge.description,
-                  style: AppTextStyles.bodyMedium,
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    challenge.title,
+                    style: AppTextStyles.labelLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    challenge.description,
+                    style: AppTextStyles.bodyMedium,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
