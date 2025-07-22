@@ -95,24 +95,29 @@ class HomeView extends GetView<HomeController> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Emotion Check-in',
-                                  style: AppTextStyles.labelLarge.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
+                            child: GestureDetector(
+                              onTap: () {
+                                Get.toNamed('/new-entry');
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Emotion Check-in',
+                                    style: AppTextStyles.labelLarge.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  'How are you feeling today?',
-                                  style: AppTextStyles.bodyMedium.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 14,
+                                  Text(
+                                    'How are you feeling today?',
+                                    style: AppTextStyles.bodyMedium.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
